@@ -1,0 +1,416 @@
+/**
+ * WP Request Queue - 等待页面样式
+ */
+
+/* 重置样式 */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 基础样式 */
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    line-height: 1.6;
+    overflow: hidden;
+}
+
+/* 背景动画 */
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%);
+    animation: wprq-bg-pulse 15s ease-in-out infinite;
+    z-index: 0;
+}
+
+@keyframes wprq-bg-pulse {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    25% {
+        transform: translate(5%, 5%) scale(1.1);
+    }
+    50% {
+        transform: translate(-5%, 10%) scale(1);
+    }
+    75% {
+        transform: translate(10%, -5%) scale(1.1);
+    }
+}
+
+/* 主容器 */
+.wprq-waiting-container {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 50px 40px;
+    text-align: center;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
+    max-width: 480px;
+    width: 90%;
+    animation: wprq-fade-in 0.8s ease-out;
+}
+
+@keyframes wprq-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* 加载动画容器 */
+.wprq-spinner-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 30px;
+}
+
+/* 外圈旋转动画 */
+.wprq-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: #667eea;
+    border-right-color: #667eea;
+    border-radius: 50%;
+    animation: wprq-spin 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+}
+
+/* 内圈旋转动画 */
+.wprq-spinner-inner {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border: 3px solid transparent;
+    border-bottom-color: #764ba2;
+    border-left-color: #764ba2;
+    border-radius: 50%;
+    animation: wprq-spin-reverse 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+}
+
+@keyframes wprq-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes wprq-spin-reverse {
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+/* 网站名称 */
+.wprq-site-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+}
+
+/* 状态信息 */
+.wprq-status-message {
+    margin-bottom: 30px;
+}
+
+.wprq-main-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 8px;
+    animation: wprq-pulse-text 2s ease-in-out infinite;
+}
+
+@keyframes wprq-pulse-text {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.wprq-sub-text {
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* 队列信息 */
+.wprq-queue-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 16px;
+}
+
+.wprq-info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.wprq-info-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #a0aec0;
+    margin-bottom: 5px;
+}
+
+.wprq-info-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #667eea;
+    line-height: 1;
+}
+
+.wprq-info-divider {
+    width: 1px;
+    height: 50px;
+    background: linear-gradient(to bottom, transparent, #cbd5e0, transparent);
+}
+
+/* 进度条容器 */
+.wprq-progress-container {
+    margin-bottom: 25px;
+}
+
+.wprq-progress-bar {
+    position: relative;
+    width: 100%;
+    height: 12px;
+    background: #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.wprq-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 6px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+    position: relative;
+}
+
+.wprq-progress-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: wprq-glow 2s ease-in-out infinite;
+}
+
+@keyframes wprq-glow {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.wprq-progress-text {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 500;
+}
+
+.wprq-progress-text span {
+    font-weight: 700;
+    color: #667eea;
+}
+
+/* 提示信息 */
+.wprq-tips {
+    padding: 15px;
+    background: linear-gradient(135deg, #ebf8ff 0%, #e9d8fd 100%);
+    border-radius: 12px;
+    margin-bottom: 0;
+}
+
+.wprq-tips p {
+    font-size: 0.85rem;
+    color: #553c9a;
+    margin: 0;
+}
+
+/* 底部信息 */
+.wprq-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.wprq-footer p {
+    font-size: 0.75rem;
+    color: #a0aec0;
+}
+
+.wprq-footer a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.wprq-footer a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    .wprq-waiting-container {
+        padding: 35px 25px;
+        border-radius: 20px;
+        margin: 15px;
+    }
+
+    .wprq-spinner-container {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 25px;
+    }
+
+    .wprq-site-name {
+        font-size: 1.5rem;
+    }
+
+    .wprq-main-text {
+        font-size: 1.1rem;
+    }
+
+    .wprq-queue-info {
+        gap: 20px;
+        padding: 15px;
+    }
+
+    .wprq-info-value {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .wprq-waiting-container {
+        padding: 25px 20px;
+    }
+
+    .wprq-queue-info {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .wprq-info-divider {
+        width: 50px;
+        height: 1px;
+    }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+    .wprq-waiting-container {
+        background: rgba(26, 32, 44, 0.95);
+    }
+
+    .wprq-site-name {
+        color: #e2e8f0;
+    }
+
+    .wprq-main-text {
+        color: #cbd5e0;
+    }
+
+    .wprq-sub-text {
+        color: #a0aec0;
+    }
+
+    .wprq-queue-info {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    }
+
+    .wprq-info-label {
+        color: #718096;
+    }
+
+    .wprq-progress-bar {
+        background: #2d3748;
+    }
+
+    .wprq-tips {
+        background: linear-gradient(135deg, #2a4365 0%, #44337a 100%);
+    }
+
+    .wprq-tips p {
+        color: #bee3f8;
+    }
+
+    .wprq-footer {
+        border-top-color: #2d3748;
+    }
+
+    .wprq-footer p {
+        color: #718096;
+    }
+}
+
+/* 打印样式 */
+@media print {
+    body {
+        background: white;
+    }
+
+    body::before {
+        display: none;
+    }
+
+    .wprq-waiting-container {
+        box-shadow: none;
+        border: 1px solid #e2e8f0;
+    }
+
+    .wprq-spinner-container {
+        display: none;
+    }
+}
